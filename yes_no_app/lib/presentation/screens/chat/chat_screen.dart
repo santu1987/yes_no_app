@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:yes_no_app/domain/entities/message.dart';
+import 'package:yes_no_app/presentation/providers/chat_provider.dart';
 import 'package:yes_no_app/presentation/widgets/chat/her_message_bubble.dart';
 import 'package:yes_no_app/presentation/widgets/chat/my_message_bubble.dart';
 import 'package:yes_no_app/presentation/widgets/shared/message_field_box.dart';
@@ -29,6 +32,9 @@ class _ChatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //ctr+. esta envuelto en una areaa segura
+    
+    final chatProvider = context.watch<ChatProvider>();
+    
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric( horizontal:10),
@@ -37,15 +43,29 @@ class _ChatView extends StatelessWidget {
             //Expande el widget hijo a todo el espaico que el hijon de
             Expanded(
               child:ListView.builder(
-                itemCount: 100,
+                controller: chatProvider.chatScrollController,
+                //itemCount: 100,
+                //obtengo uandtos mensajes hay desde el provider
+                itemCount: chatProvider.message.length,
+                /* Como genero que se vean los mensajes sin el provider
                 itemBuilder:( context, index){
                   //return MyMessageBubble();
                   return ( index % 2 == 0)
                   ? const HerMessageBubble()
                   : const MyMessageBubble();
-                },) 
+                },*/
+                //COmo genero los items con chatProvider
+                itemBuilder: ( context, index){
+                  final message = chatProvider.message[index];
+                  return (message.fromWho == FromWho.hers)
+                    ? HerMessageBubble()
+                    : MyMessageBubble(message:message);
+                },
+                ) 
             ),
-            MessageFieldBox(),
+            MessageFieldBox(
+              onValue: (value) => chatProvider.sendMessage(value),
+            ),
           ],
         ),
       ),
